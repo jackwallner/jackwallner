@@ -6,3 +6,4 @@ A new project repository.
 
 This repository is ready for development.
 
+# QA-Bot
