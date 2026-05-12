@@ -22,32 +22,32 @@ final class GoalSettings {
     }
 
     var alwaysOnEnabled: Bool {
-        get { defaults.bool(forKey: Key.alwaysOnEnabled) }
-        set { defaults.set(newValue, forKey: Key.alwaysOnEnabled) }
+        get { access(keyPath: \.alwaysOnEnabled); return defaults.bool(forKey: Key.alwaysOnEnabled) }
+        set { withMutation(keyPath: \.alwaysOnEnabled) { defaults.set(newValue, forKey: Key.alwaysOnEnabled) } }
     }
 
     var hasCompletedOnboarding: Bool {
-        get { defaults.bool(forKey: Key.hasCompletedOnboarding) }
-        set { defaults.set(newValue, forKey: Key.hasCompletedOnboarding) }
+        get { access(keyPath: \.hasCompletedOnboarding); return defaults.bool(forKey: Key.hasCompletedOnboarding) }
+        set { withMutation(keyPath: \.hasCompletedOnboarding) { defaults.set(newValue, forKey: Key.hasCompletedOnboarding) } }
     }
 
     var hasCalibrated: Bool {
-        get { defaults.bool(forKey: Key.hasCalibrated) }
-        set { defaults.set(newValue, forKey: Key.hasCalibrated) }
+        get { access(keyPath: \.hasCalibrated); return defaults.bool(forKey: Key.hasCalibrated) }
+        set { withMutation(keyPath: \.hasCalibrated) { defaults.set(newValue, forKey: Key.hasCalibrated) } }
     }
 
     var dailyReminderEnabled: Bool {
-        get { defaults.object(forKey: Key.dailyReminderEnabled) as? Bool ?? true }
-        set { defaults.set(newValue, forKey: Key.dailyReminderEnabled) }
+        get { access(keyPath: \.dailyReminderEnabled); return defaults.object(forKey: Key.dailyReminderEnabled) as? Bool ?? true }
+        set { withMutation(keyPath: \.dailyReminderEnabled) { defaults.set(newValue, forKey: Key.dailyReminderEnabled) } }
     }
 
     var dailyReminderHour: Int {
-        get { defaults.object(forKey: Key.dailyReminderHour) as? Int ?? 9 }
-        set { defaults.set(newValue, forKey: Key.dailyReminderHour) }
+        get { access(keyPath: \.dailyReminderHour); return defaults.object(forKey: Key.dailyReminderHour) as? Int ?? 9 }
+        set { withMutation(keyPath: \.dailyReminderHour) { defaults.set(newValue, forKey: Key.dailyReminderHour) } }
     }
 
     var sensitivity: Int {
-        get { defaults.object(forKey: Key.sensitivity) as? Int ?? 1 }
-        set { defaults.set(newValue, forKey: Key.sensitivity) }
+        get { access(keyPath: \.sensitivity); return defaults.object(forKey: Key.sensitivity) as? Int ?? 1 }
+        set { withMutation(keyPath: \.sensitivity) { defaults.set(newValue, forKey: Key.sensitivity) } }
     }
 }

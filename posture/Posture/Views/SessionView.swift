@@ -23,6 +23,11 @@ struct SessionView: View {
             }
         }
         .task { await prepare() }
+        .onChange(of: engine?.state) { _, newState in
+            if case .finished = newState {
+                StreakService(context: context).recordSessionCompleted()
+            }
+        }
         .onDisappear {
             face.stop()
             airpods.stop()
@@ -110,7 +115,6 @@ struct SessionView: View {
                 .font(.headline)
                 .foregroundStyle(Theme.qualityColor(qualityForScore(score)))
             Button {
-                StreakService(context: context).recordSessionCompleted()
                 dismiss()
             } label: {
                 Text("Done")
@@ -162,7 +166,7 @@ struct SessionView: View {
         let useAirpods = airpods.isConnected && calibration.airpodsPitch != nil
         activeSource = useAirpods ? .airpods : .camera
 
-        let engine = SessionEngine(context: context, calibration: calibration, source: activeSource)
+        let engine = SessionEngine(context: context, calibration: calibration, source: activeSource, sensitivity: GoalSettings.shared.sensitivity)
 
         if useAirpods, let baseline = calibration.airpodsPitch {
             airpods.onSample = { pitch, _, _ in

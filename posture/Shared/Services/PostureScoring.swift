@@ -10,12 +10,18 @@ enum PostureQuality: String, Sendable {
 enum PostureScoring {
     /// Convert a single pose deviation (radians from baseline pitch) into a quality bucket.
     /// `slouchDelta` is the calibrated full-slouch reference deviation.
-    static func quality(deviation: Double, slouchDelta: Double) -> PostureQuality {
+    /// `sensitivity`: 0 = relaxed, 1 = normal, 2 = strict.
+    static func quality(deviation: Double, slouchDelta: Double, sensitivity: Int = 1) -> PostureQuality {
         let absDev = abs(deviation)
         let safeSlouch = max(slouchDelta, .pi / 24)  // floor at 7.5°
         let ratio = absDev / safeSlouch
-        if ratio < 0.35 { return .good }
-        if ratio < 0.70 { return .borderline }
+        let (goodThreshold, borderlineThreshold): (Double, Double) = switch sensitivity {
+        case 0: (0.50, 1.00)  // Relaxed — only flag major slouches
+        case 2: (0.20, 0.40)  // Strict — catch even slight deviations
+        default: (0.35, 0.70) // Normal
+        }
+        if ratio < goodThreshold { return .good }
+        if ratio < borderlineThreshold { return .borderline }
         return .bad
     }
 

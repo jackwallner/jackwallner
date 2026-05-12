@@ -28,11 +28,13 @@ final class SessionEngine {
     private let context: ModelContext
     private let calibration: Calibration
     private let source: PostureSource
+    private let sensitivity: Int
 
-    init(context: ModelContext, calibration: Calibration, source: PostureSource) {
+    init(context: ModelContext, calibration: Calibration, source: PostureSource, sensitivity: Int = 1) {
         self.context = context
         self.calibration = calibration
         self.source = source
+        self.sensitivity = sensitivity
     }
 
     func start(targetSeconds: Int) {
@@ -55,7 +57,7 @@ final class SessionEngine {
         let smoothed = PostureScoring.smoothed(previous: smoothedDeviation, sample: deviation)
         smoothedDeviation = smoothed
         liveDeviation = smoothed
-        currentQuality = PostureScoring.quality(deviation: smoothed, slouchDelta: calibration.slouchPitchDelta)
+        currentQuality = PostureScoring.quality(deviation: smoothed, slouchDelta: calibration.slouchPitchDelta, sensitivity: sensitivity)
     }
 
     func cancel() {

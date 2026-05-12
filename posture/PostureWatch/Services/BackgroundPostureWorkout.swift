@@ -76,6 +76,8 @@ final class BackgroundPostureWorkout: NSObject {
 
     func stop() {
         motion.stopDeviceMotionUpdates()
+        sustainedBadStart = nil
+        smoothedDeviation = nil
         session?.end()
         Task {
             try? await builder?.endCollection(at: Date())
@@ -104,7 +106,7 @@ final class BackgroundPostureWorkout: NSObject {
         let dev = WatchMotionService.angleBetween(baseline, g)
         let smoothed = PostureScoring.smoothed(previous: smoothedDeviation, sample: dev)
         smoothedDeviation = smoothed
-        let quality = PostureScoring.quality(deviation: smoothed, slouchDelta: slouchDelta)
+        let quality = PostureScoring.quality(deviation: smoothed, slouchDelta: slouchDelta, sensitivity: GoalSettings.shared.sensitivity)
 
         if quality == .bad {
             if sustainedBadStart == nil {

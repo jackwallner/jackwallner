@@ -32,6 +32,7 @@ struct WatchSessionView: View {
         .onDisappear {
             ticker?.cancel()
             motion.stop()
+            motion.onDeviation = nil
         }
     }
 
@@ -104,7 +105,7 @@ struct WatchSessionView: View {
         motion.onDeviation = { dev in
             let smoothed = PostureScoring.smoothed(previous: smoothedDeviation, sample: dev)
             smoothedDeviation = smoothed
-            let quality = PostureScoring.quality(deviation: smoothed, slouchDelta: calibration.slouchPitchDelta)
+            let quality = PostureScoring.quality(deviation: smoothed, slouchDelta: calibration.slouchPitchDelta, sensitivity: GoalSettings.shared.sensitivity)
             currentQuality = quality
 
             if quality == .bad {
@@ -150,7 +151,9 @@ struct WatchSessionView: View {
             badSeconds: badSeconds
         )
         finalScore = score
+        let startedAt = Date().addingTimeInterval(TimeInterval(-elapsed))
         let session = PostureSession(
+            startedAt: startedAt,
             durationSeconds: elapsed,
             score: score,
             goodSeconds: goodSeconds,

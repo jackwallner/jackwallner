@@ -36,6 +36,7 @@ final class StreakService {
             state.currentStreak = 1
             state.longestStreak = max(1, state.longestStreak)
             state.lastActiveDay = today
+            state.dailyGoalSeconds = StreakService.dailyGoalSeconds(forStreak: state.currentStreak)
             return
         }
         let lastDay = DateHelpers.startOfDay(last)
@@ -56,6 +57,7 @@ final class StreakService {
         }
         state.longestStreak = max(state.longestStreak, state.currentStreak)
         state.lastActiveDay = today
+        state.dailyGoalSeconds = StreakService.dailyGoalSeconds(forStreak: state.currentStreak)
     }
 
     /// Daily goal pacing: 60s on day 1, +30s every 3 streak days, capped at 5 min.

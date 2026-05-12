@@ -15,6 +15,7 @@ struct CalibrationView: View {
     @State private var capturedAirpodsBaseRoll: Double?
     @State private var countdown: Int = 0
     @State private var capturing: Bool = false
+    @State private var countdownTask: Task<Void, Never>?
 
     enum Step {
         case intro, captureBaseline, captureSlouch, done
@@ -54,6 +55,7 @@ struct CalibrationView: View {
             airpods.start()
         }
         .onDisappear {
+            countdownTask?.cancel()
             face.stop()
             airpods.stop()
         }
@@ -186,10 +188,17 @@ struct CalibrationView: View {
     private func runCountdown(onCapture: @escaping (Double) -> Void) {
         capturing = true
         countdown = 5
-        Task {
+        countdownTask?.cancel()
+        countdownTask = Task {
+            defer {
+                capturing = false
+                countdown = 0
+            }
             for i in stride(from: 5, through: 1, by: -1) {
+                guard !Task.isCancelled else { return }
                 countdown = i
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
+                guard !Task.isCancelled else { return }
             }
             // Average pitch over a 1-second sample
             var faceSamples: [Double] = []
@@ -210,8 +219,10 @@ struct CalibrationView: View {
                 capturedAirpodsBaseYaw = airpodsYaw.isEmpty ? nil : airpodsYaw.reduce(0, +) / Double(airpodsYaw.count)
                 capturedAirpodsBaseRoll = airpodsRoll.isEmpty ? nil : airpodsRoll.reduce(0, +) / Double(airpodsRoll.count)
             }
+            guard !Task.isCancelled else { return }
             capturing = false
             countdown = 0
+            guard !Task.isCancelled else { return }
             onCapture(faceAvg)
         }
     }
