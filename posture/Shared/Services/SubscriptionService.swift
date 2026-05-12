@@ -11,9 +11,8 @@ import RevenueCat
 final class SubscriptionService {
     static let shared = SubscriptionService()
 
-    /// Replace with the project's public SDK key from RevenueCat.
-    /// Format: appl_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-    static let apiKey = "REPLACE_WITH_REVENUECAT_PUBLIC_SDK_KEY"
+    /// RevenueCat public SDK key. Configure pricing/paywall in the RevenueCat dashboard.
+    static let apiKey = "appl_FLeVCThtDONPnIdpaDisBsWbpji"
 
     static let proEntitlement = "pro"
 
@@ -23,10 +22,6 @@ final class SubscriptionService {
     func configure() {
         #if canImport(RevenueCat)
         guard !isConfigured else { return }
-        if Self.apiKey == "REPLACE_WITH_REVENUECAT_PUBLIC_SDK_KEY" {
-            // No-op until a real key is set. Keeps debug builds usable.
-            return
-        }
         Purchases.configure(withAPIKey: Self.apiKey)
         isConfigured = true
         Task { await refresh() }
