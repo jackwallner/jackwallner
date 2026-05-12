@@ -24,6 +24,10 @@
 	<false/>
 	<key>NSMotionUsageDescription</key>
 	<string>Posture reads wrist motion to detect when you slouch and gently nudge you with a haptic.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Posture starts a brief workout session so it can read wrist motion in the background and gently nudge you when you slouch.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Posture does not write any data to Apple Health.</string>
 	<key>WKApplication</key>
 	<true/>
 	<key>WKCompanionAppBundleIdentifier</key>
@@ -31,6 +35,7 @@
 	<key>WKBackgroundModes</key>
 	<array>
 		<string>self-care</string>
+		<string>workout-processing</string>
 	</array>
 </dict>
 </plist>

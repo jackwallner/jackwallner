@@ -5,6 +5,10 @@ import SwiftUI
 struct PostureApp: App {
     @State private var settings = GoalSettings.shared
 
+    init() {
+        SubscriptionService.shared.configure()
+    }
+
     var body: some Scene {
         WindowGroup {
             RootView()

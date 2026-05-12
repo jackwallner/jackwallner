@@ -3,20 +3,33 @@ import SwiftUI
 
 struct HistoryView: View {
     @Query(sort: \PostureSession.startedAt, order: .reverse) private var sessions: [PostureSession]
+    @State private var subscriptions = SubscriptionService.shared
 
     var body: some View {
         NavigationStack {
-            Group {
-                if sessions.isEmpty {
-                    emptyState
-                } else {
-                    List {
-                        ForEach(sessions) { session in
-                            row(for: session)
-                        }
+            ScrollView {
+                VStack(spacing: 16) {
+                    if subscriptions.isProSubscriber {
+                        PassiveTimelineView()
+                            .padding(.horizontal)
                     }
-                    .listStyle(.insetGrouped)
+
+                    if sessions.isEmpty {
+                        emptyState
+                    } else {
+                        VStack(spacing: 0) {
+                            ForEach(sessions) { session in
+                                row(for: session)
+                                if session.id != sessions.last?.id {
+                                    Divider().padding(.leading, 80)
+                                }
+                            }
+                        }
+                        .background(Theme.cardSurface, in: .rect(cornerRadius: Theme.cardRadius))
+                        .padding(.horizontal)
+                    }
                 }
+                .padding(.vertical)
             }
             .background(Theme.background.ignoresSafeArea())
             .navigationTitle("History")
@@ -50,6 +63,7 @@ struct HistoryView: View {
             }
             Spacer()
         }
-        .padding(.vertical, 4)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
     }
 }

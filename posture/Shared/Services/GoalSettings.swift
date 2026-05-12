@@ -18,6 +18,12 @@ final class GoalSettings {
         static let dailyReminderEnabled = "dailyReminderEnabled"
         static let dailyReminderHour = "dailyReminderHour"
         static let sensitivity = "sensitivity"  // 0=relaxed, 1=normal, 2=strict
+        static let alwaysOnEnabled = "alwaysOnEnabled"
+    }
+
+    var alwaysOnEnabled: Bool {
+        get { defaults.bool(forKey: Key.alwaysOnEnabled) }
+        set { defaults.set(newValue, forKey: Key.alwaysOnEnabled) }
     }
 
     var hasCompletedOnboarding: Bool {

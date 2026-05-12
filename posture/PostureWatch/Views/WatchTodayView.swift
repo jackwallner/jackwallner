@@ -56,6 +56,14 @@ struct WatchTodayView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(Theme.brandPrimary)
+
+                    NavigationLink {
+                        WatchSettingsView()
+                    } label: {
+                        Label("Settings", systemImage: "gearshape")
+                            .font(.subheadline)
+                    }
+                    .buttonStyle(.bordered)
                 }
                 .padding(.horizontal, 4)
             }

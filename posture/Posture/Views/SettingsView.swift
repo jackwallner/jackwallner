@@ -6,11 +6,38 @@ struct SettingsView: View {
     @Environment(\.modelContext) private var context
 
     @State private var notificationsAuthorized: Bool = false
+    @State private var subscriptions = SubscriptionService.shared
+    @State private var showingPaywall = false
 
     var body: some View {
         @Bindable var settings = settings
         NavigationStack {
             Form {
+                Section {
+                    if subscriptions.isProSubscriber {
+                        Toggle("Always-on Watch monitoring", isOn: $settings.alwaysOnEnabled)
+                        Text("Your Apple Watch will quietly track posture in the background and haptic-nudge you when you slouch.")
+                            .font(.caption)
+                            .foregroundStyle(Theme.textSecondary)
+                    } else {
+                        Button {
+                            showingPaywall = true
+                        } label: {
+                            HStack {
+                                Image(systemName: "crown.fill").foregroundStyle(Theme.brandPrimary)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Upgrade to Posture Pro").font(.headline)
+                                    Text("Always-on Watch monitoring + photo analysis").font(.caption).foregroundStyle(Theme.textSecondary)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right").foregroundStyle(Theme.textTertiary)
+                            }
+                        }
+                    }
+                } header: {
+                    Text("Pro")
+                }
+
                 Section("Daily reminder") {
                     Toggle("Remind me each day", isOn: $settings.dailyReminderEnabled)
                     if settings.dailyReminderEnabled {
@@ -45,6 +72,9 @@ struct SettingsView: View {
             }
             .onChange(of: settings.dailyReminderHour) { _, hour in
                 Task { await applyReminderSettings(enabled: settings.dailyReminderEnabled, hour: hour) }
+            }
+            .sheet(isPresented: $showingPaywall) {
+                PaywallView()
             }
         }
     }
