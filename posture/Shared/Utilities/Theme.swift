@@ -1,6 +1,15 @@
 import SwiftUI
 
 enum Theme {
+    #if os(watchOS)
+    static let background = Color.black
+    static let cardSurface = Color(white: 0.12)
+    static let cardSurfaceLight = Color(white: 0.18)
+    static let ringTrack = Color(white: 0.20)
+    static let textPrimary = Color.white
+    static let textSecondary = Color(white: 0.70)
+    static let textTertiary = Color(white: 0.50)
+    #else
     static let background = Color(.systemBackground)
     static let cardSurface = Color(.secondarySystemBackground)
     static let cardSurfaceLight = Color(.tertiarySystemBackground)
@@ -8,16 +17,17 @@ enum Theme {
     static let textPrimary = Color(.label)
     static let textSecondary = Color(.secondaryLabel)
     static let textTertiary = Color(.tertiaryLabel)
+    #endif
 
     // Posture quality palette
-    static let good = Color(red: 0.20, green: 0.72, blue: 0.45)        // forest green
-    static let borderline = Color(red: 1.00, green: 0.70, blue: 0.20)  // amber
-    static let bad = Color(red: 0.95, green: 0.36, blue: 0.36)         // coral
+    static let good = Color(red: 0.20, green: 0.72, blue: 0.45)
+    static let borderline = Color(red: 1.00, green: 0.70, blue: 0.20)
+    static let bad = Color(red: 0.95, green: 0.36, blue: 0.36)
 
     // Brand
-    static let brandPrimary = Color(red: 0.36, green: 0.55, blue: 0.95)   // calm blue
-    static let brandSecondary = Color(red: 0.55, green: 0.42, blue: 0.95) // soft purple
-    static let streakFlame = Color(red: 1.00, green: 0.55, blue: 0.10)    // warm orange
+    static let brandPrimary = Color(red: 0.36, green: 0.55, blue: 0.95)
+    static let brandSecondary = Color(red: 0.55, green: 0.42, blue: 0.95)
+    static let streakFlame = Color(red: 1.00, green: 0.55, blue: 0.10)
 
     static let cardRadius: CGFloat = 20
     static let cardPadding: CGFloat = 20

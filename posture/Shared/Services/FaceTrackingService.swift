@@ -1,3 +1,4 @@
+#if os(iOS)
 @preconcurrency import AVFoundation
 import Combine
 import CoreImage
@@ -82,6 +83,7 @@ final class FaceTrackingService: NSObject {
     }
 }
 
+@available(iOS 13.0, *)
 extension FaceTrackingService: AVCaptureVideoDataOutputSampleBufferDelegate {
     nonisolated func captureOutput(
         _ output: AVCaptureOutput,
@@ -113,3 +115,4 @@ extension FaceTrackingService: AVCaptureVideoDataOutputSampleBufferDelegate {
         }
     }
 }
+#endif

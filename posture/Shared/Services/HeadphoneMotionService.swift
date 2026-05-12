@@ -1,3 +1,4 @@
+#if os(iOS)
 import CoreMotion
 import Foundation
 import Observation
@@ -73,3 +74,4 @@ private final class HeadphoneDelegateBox: NSObject, CMHeadphoneMotionManagerDele
         onChange?(false)
     }
 }
+#endif
