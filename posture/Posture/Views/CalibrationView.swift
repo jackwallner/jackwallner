@@ -7,8 +7,12 @@ struct CalibrationView: View {
 
     @State private var step: Step = .intro
     @State private var face = FaceTrackingService()
+    @State private var airpods = HeadphoneMotionService()
     @State private var capturedBasePitch: Double?
     @State private var capturedSlouchPitch: Double?
+    @State private var capturedAirpodsBasePitch: Double?
+    @State private var capturedAirpodsBaseYaw: Double?
+    @State private var capturedAirpodsBaseRoll: Double?
     @State private var countdown: Int = 0
     @State private var capturing: Bool = false
 
@@ -47,8 +51,12 @@ struct CalibrationView: View {
         .background(Theme.background.ignoresSafeArea())
         .task {
             if step != .intro { await face.start() }
+            airpods.start()
         }
-        .onDisappear { face.stop() }
+        .onDisappear {
+            face.stop()
+            airpods.stop()
+        }
     }
 
     private var introStep: some View {
@@ -109,6 +117,16 @@ struct CalibrationView: View {
                 Text(face.faceDetected ? "Face detected" : "Position your face in frame")
                     .font(.subheadline)
                     .foregroundStyle(Theme.textSecondary)
+            }
+
+            if airpods.isConnected {
+                HStack(spacing: 6) {
+                    Image(systemName: "airpodspro")
+                        .foregroundStyle(Theme.brandPrimary)
+                    Text("AirPods baseline being captured too")
+                        .font(.caption)
+                        .foregroundStyle(Theme.textSecondary)
+                }
             }
 
             if capturing {
@@ -174,15 +192,27 @@ struct CalibrationView: View {
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
             }
             // Average pitch over a 1-second sample
-            var samples: [Double] = []
+            var faceSamples: [Double] = []
+            var airpodsPitch: [Double] = []
+            var airpodsYaw: [Double] = []
+            var airpodsRoll: [Double] = []
             for _ in 0..<10 {
-                if let p = face.lastPitch { samples.append(p) }
+                if let p = face.lastPitch { faceSamples.append(p) }
+                if let p = airpods.lastPitch { airpodsPitch.append(p) }
+                if let y = airpods.lastYaw { airpodsYaw.append(y) }
+                if let r = airpods.lastRoll { airpodsRoll.append(r) }
                 try? await Task.sleep(nanoseconds: 100_000_000)
             }
-            let avg = samples.isEmpty ? 0 : samples.reduce(0, +) / Double(samples.count)
+            let faceAvg = faceSamples.isEmpty ? 0 : faceSamples.reduce(0, +) / Double(faceSamples.count)
+            // Only persist AirPods baseline on the first capture step (the upright one)
+            if step == .captureBaseline, !airpodsPitch.isEmpty {
+                capturedAirpodsBasePitch = airpodsPitch.reduce(0, +) / Double(airpodsPitch.count)
+                capturedAirpodsBaseYaw = airpodsYaw.isEmpty ? nil : airpodsYaw.reduce(0, +) / Double(airpodsYaw.count)
+                capturedAirpodsBaseRoll = airpodsRoll.isEmpty ? nil : airpodsRoll.reduce(0, +) / Double(airpodsRoll.count)
+            }
             capturing = false
             countdown = 0
-            onCapture(avg)
+            onCapture(faceAvg)
         }
     }
 
@@ -193,9 +223,13 @@ struct CalibrationView: View {
             basePitch: base,
             baseYaw: face.lastYaw ?? 0,
             baseRoll: face.lastRoll ?? 0,
-            slouchPitchDelta: max(delta, .pi / 24)  // 7.5° floor
+            slouchPitchDelta: max(delta, .pi / 24),  // 7.5° floor
+            airpodsPitch: capturedAirpodsBasePitch,
+            airpodsRoll: capturedAirpodsBaseRoll,
+            airpodsYaw: capturedAirpodsBaseYaw
         )
         CalibrationService(context: context).save(cal)
         face.stop()
+        airpods.stop()
     }
 }

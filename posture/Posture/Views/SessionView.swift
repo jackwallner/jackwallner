@@ -8,7 +8,9 @@ struct SessionView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var face = FaceTrackingService()
+    @State private var airpods = HeadphoneMotionService()
     @State private var engine: SessionEngine?
+    @State private var activeSource: PostureSource = .camera
 
     var body: some View {
         ZStack {
@@ -17,12 +19,13 @@ struct SessionView: View {
             if let engine {
                 runningView(engine: engine)
             } else {
-                ProgressView("Preparing camera…")
+                ProgressView("Preparing…")
             }
         }
         .task { await prepare() }
         .onDisappear {
             face.stop()
+            airpods.stop()
             engine?.cancel()
         }
     }
@@ -36,16 +39,23 @@ struct SessionView: View {
                 }
                 .foregroundStyle(Theme.textSecondary)
                 Spacer()
+                sourceBadge
+                Spacer()
                 Text("\(remaining(engine: engine))s")
                     .font(Theme.bigNumber(20))
                     .monospacedDigit()
             }
             .padding(.horizontal)
 
-            CameraPreview(session: face.session)
-                .aspectRatio(3/4, contentMode: .fit)
-                .clipShape(.rect(cornerRadius: 20))
-                .padding(.horizontal)
+            switch activeSource {
+            case .camera:
+                CameraPreview(session: face.session)
+                    .aspectRatio(3/4, contentMode: .fit)
+                    .clipShape(.rect(cornerRadius: 20))
+                    .padding(.horizontal)
+            case .airpods, .watch:
+                airpodsHeroView(engine: engine)
+            }
 
             PostureLiveIndicator(quality: engine.currentQuality)
 
@@ -59,6 +69,38 @@ struct SessionView: View {
             }
         }
         .padding(.vertical)
+    }
+
+    private var sourceBadge: some View {
+        let (icon, label): (String, String) = switch activeSource {
+        case .airpods: ("airpodspro", "AirPods")
+        case .camera: ("camera.fill", "Camera")
+        case .watch: ("applewatch", "Watch")
+        }
+        return HStack(spacing: 6) {
+            Image(systemName: icon)
+            Text(label)
+        }
+        .font(.caption.weight(.semibold))
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(Theme.cardSurface, in: .capsule)
+    }
+
+    private func airpodsHeroView(engine: SessionEngine) -> some View {
+        VStack(spacing: 16) {
+            Image(systemName: "airpodspro")
+                .font(.system(size: 90, weight: .light))
+                .foregroundStyle(Theme.qualityColor(engine.currentQuality))
+                .padding(.top, 24)
+            Text("Sit upright. Eyes forward.")
+                .font(.headline)
+                .foregroundStyle(Theme.textSecondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 40)
+        .background(Theme.cardSurface, in: .rect(cornerRadius: Theme.cardRadius))
+        .padding(.horizontal)
     }
 
     private func summaryCard(score: Int) -> some View {
@@ -112,12 +154,28 @@ struct SessionView: View {
             dismiss()
             return
         }
-        let engine = SessionEngine(context: context, calibration: calibration, source: .camera)
-        face.onSample = { pitch, _, _ in
-            let dev = pitch - calibration.basePitch
-            engine.ingestPitchDeviation(dev)
+
+        // Probe AirPods first — if connected and we have a baseline, prefer them.
+        airpods.start()
+        try? await Task.sleep(nanoseconds: 400_000_000)
+
+        let useAirpods = airpods.isConnected && calibration.airpodsPitch != nil
+        activeSource = useAirpods ? .airpods : .camera
+
+        let engine = SessionEngine(context: context, calibration: calibration, source: activeSource)
+
+        if useAirpods, let baseline = calibration.airpodsPitch {
+            airpods.onSample = { pitch, _, _ in
+                engine.ingestPitchDeviation(pitch - baseline)
+            }
+        } else {
+            airpods.stop()
+            face.onSample = { pitch, _, _ in
+                engine.ingestPitchDeviation(pitch - calibration.basePitch)
+            }
+            await face.start()
         }
-        await face.start()
+
         engine.start(targetSeconds: targetSeconds)
         self.engine = engine
     }
